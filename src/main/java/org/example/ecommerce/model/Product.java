@@ -4,9 +4,13 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "products")
 public class Product {
 
     @Id
@@ -31,6 +35,15 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @ManyToOne
+    @JoinColumn(name = "seller_id")
+    private User user;
+
+    @OneToMany(mappedBy = "product",cascade = {CascadeType.PERSIST,CascadeType.MERGE},orphanRemoval = true)
+    private List<CartItem> products = new ArrayList<>();
+
+    public Product() {
+    }
 
     public String getImage() {
         return image;
@@ -102,5 +115,21 @@ public class Product {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<CartItem> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<CartItem> products) {
+        this.products = products;
     }
 }

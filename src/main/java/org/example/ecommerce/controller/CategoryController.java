@@ -3,17 +3,12 @@ package org.example.ecommerce.controller;
 
 import jakarta.validation.Valid;
 import org.example.ecommerce.config.AppConstants;
-import org.example.ecommerce.model.Category;
 import org.example.ecommerce.payload.CategoryDTO;
 import org.example.ecommerce.payload.CategoryResponse;
 import org.example.ecommerce.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController()
 @RequestMapping("/api")
