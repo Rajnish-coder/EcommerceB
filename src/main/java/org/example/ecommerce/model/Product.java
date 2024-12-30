@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "products")
 public class Product {
@@ -30,6 +29,8 @@ public class Product {
     private double discount;
 
     private double specialPrice;
+
+    private double avgRating;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
@@ -131,5 +132,13 @@ public class Product {
 
     public void setProducts(List<CartItem> products) {
         this.products = products;
+    }
+
+    public double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(double avgRating) {
+        this.avgRating = avgRating;
     }
 }

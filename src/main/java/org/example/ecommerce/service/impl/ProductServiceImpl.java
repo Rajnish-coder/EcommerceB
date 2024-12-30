@@ -1,13 +1,17 @@
 package org.example.ecommerce.service.impl;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.example.ecommerce.exceptions.APIException;
 import org.example.ecommerce.exceptions.ResourceNotFoundException;
+import org.example.ecommerce.messaging.ReviewMessage;
+import org.example.ecommerce.messaging.ReviewMessageConsumer;
 import org.example.ecommerce.model.Cart;
 import org.example.ecommerce.model.Category;
 import org.example.ecommerce.model.Product;
 import org.example.ecommerce.payload.CartDTO;
 import org.example.ecommerce.payload.ProductDTO;
 import org.example.ecommerce.payload.ProductResponse;
+import org.example.ecommerce.payload.ProductWithReviewsDTO;
 import org.example.ecommerce.repository.CartRepository;
 import org.example.ecommerce.repository.CategoryRepository;
 import org.example.ecommerce.repository.ProductRepository;
@@ -20,8 +24,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.List;
@@ -42,18 +51,25 @@ public class ProductServiceImpl implements ProductService {
 
     private CartService cartService;
 
+    private RestTemplate restTemplate;
+
+    @Value(value = "${review-service.url}")
+    private String baseUrl;
+
+
     @Value("${project.image}")
     private String path;
 
 
     public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository,FileService fileService,
-                              ModelMapper modelMapper, CartRepository cartRepository, CartService cartService) {
+                              ModelMapper modelMapper, CartRepository cartRepository, CartService cartService,RestTemplate restTemplate) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.fileService = fileService;
         this.modelMapper = modelMapper;
         this.cartRepository = cartRepository;
         this.cartService = cartService;
+        this.restTemplate = restTemplate;
     }
 
     @Override
@@ -183,6 +199,33 @@ public class ProductServiceImpl implements ProductService {
         return modelMapper.map(productFromDb, ProductDTO.class);
     }
 
+    @Override
+    @CircuitBreaker(name = "companyBreaker", fallbackMethod = "companyBreakerFallback")
+    public ProductWithReviewsDTO getProductById(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("productId", productId);
+
+        String urlWithParams = builder.toUriString();
+        List reviews = restTemplate.getForObject(urlWithParams, List.class);
+        ProductWithReviewsDTO productWithReviewsDTO = new ProductWithReviewsDTO();
+        ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
+        productDTO.setAvgRating(product.getAvgRating());
+        productWithReviewsDTO.setProduct(productDTO);
+        productWithReviewsDTO.setReviews(reviews);
+        return productWithReviewsDTO;
+    }
+
+    @Override
+    public void updateProductAvgRating(Long productId, Double avgRating) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+        product.setAvgRating(avgRating);
+        productRepository.save(product);
+    }
+
     private ProductResponse getProductResponse(Page<Product> productPage, List<ProductDTO> productDTOList) {
         ProductResponse productResponse = new ProductResponse();
         productResponse.setPageNumber(productPage.getNumber());
@@ -192,6 +235,11 @@ public class ProductServiceImpl implements ProductService {
         productResponse.setLastPage(productPage.isLast());
         productResponse.setContent(productDTOList);
         return productResponse;
+    }
+
+
+    public ResponseEntity<String> companyBreakerFallback(Exception e){
+        return new ResponseEntity<>("Something went wrong", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

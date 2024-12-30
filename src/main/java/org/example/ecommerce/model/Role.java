@@ -5,7 +5,6 @@ import lombok.ToString;
 
 
 @Entity
-@NoArgsConstructor
 @Table(name = "roles")
 public class Role {
 

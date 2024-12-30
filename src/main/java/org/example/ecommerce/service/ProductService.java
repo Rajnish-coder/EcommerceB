@@ -1,7 +1,9 @@
 package org.example.ecommerce.service;
 
+import org.example.ecommerce.messaging.ReviewMessage;
 import org.example.ecommerce.payload.ProductDTO;
 import org.example.ecommerce.payload.ProductResponse;
+import org.example.ecommerce.payload.ProductWithReviewsDTO;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,4 +24,8 @@ public interface ProductService {
     String deleteProduct(Long productId);
 
     ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
+
+    ProductWithReviewsDTO getProductById(Long productId);
+
+    void updateProductAvgRating(Long productId, Double avgRating);
 }

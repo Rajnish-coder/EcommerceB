@@ -23,6 +23,8 @@ public class ProductDTO {
 
     private double specialPrice;
 
+    private double avgRating;
+
 
 
     public String getDescription() {
@@ -87,5 +89,13 @@ public class ProductDTO {
 
     public void setSpecialPrice(double specialPrice) {
         this.specialPrice = specialPrice;
+    }
+
+    public double getAvgRating() {
+        return avgRating;
+    }
+
+    public void setAvgRating(double avgRating) {
+        this.avgRating = avgRating;
     }
 }

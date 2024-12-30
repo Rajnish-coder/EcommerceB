@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/ecommerce/auth")
 public class AuthController {
 
     @Autowired

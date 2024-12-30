@@ -1,18 +1,23 @@
 package org.example.ecommerce.controller;
 
 import org.example.ecommerce.config.AppConstants;
+import org.example.ecommerce.external.Review;
 import org.example.ecommerce.payload.ProductDTO;
 import org.example.ecommerce.payload.ProductResponse;
+import org.example.ecommerce.payload.ProductWithReviewsDTO;
 import org.example.ecommerce.service.ProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/ecommerce")
 public class ProductController {
 
     private ProductService productService;
@@ -39,6 +44,13 @@ public class ProductController {
 
         ProductResponse productResponse = productService.getAllProducts(pageNumber,pageSize,sortBy,sortOrder);
         return new ResponseEntity<>(productResponse, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/public/products/{productId}")
+    public ResponseEntity<ProductWithReviewsDTO> getProductById(@PathVariable Long productId) {
+        ProductWithReviewsDTO productWithReviewsDTO = productService.getProductById(productId);
+        return new ResponseEntity<>(productWithReviewsDTO, HttpStatus.OK);
     }
 
     @GetMapping("/public/category/{categoryId}/products")
